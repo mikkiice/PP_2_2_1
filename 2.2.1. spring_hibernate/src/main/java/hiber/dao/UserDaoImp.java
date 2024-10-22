@@ -22,8 +22,19 @@ public class UserDaoImp implements UserDao {
    @Override
    @SuppressWarnings("unchecked")
    public List<User> listUsers() {
-      TypedQuery<User> query=sessionFactory.getCurrentSession().createQuery("from User");
+      TypedQuery<User> query=sessionFactory.getCurrentSession().createQuery
+              ("from User user join fetch user.car", User.class);
       return query.getResultList();
    }
-
+   @SuppressWarnings("unchecked")
+   public User getUserByCar(String model, int series) {
+      try {
+         String hql = "from User user join fetch user.car where user.car.model = :model and user.car.series = :series";
+         TypedQuery<User> typedQuery = sessionFactory.getCurrentSession().createQuery(hql, User.class);
+         typedQuery.setParameter("model", model).setParameter("series", series);
+         return typedQuery.setMaxResults(1).getSingleResult();
+      } catch (Exception e) {
+          throw new RuntimeException("Ошибка получения данных", e);
+      }
+   }
 }

@@ -1,10 +1,13 @@
 package hiber.model;
 
+import org.hibernate.Session;
+
 import javax.persistence.*;
 
 @Entity
 @Table(name = "users")
 public class User {
+   private Session session;
 
    @Id
    @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,12 +22,16 @@ public class User {
    @Column(name = "email")
    private String email;
 
+   @OneToOne(cascade = CascadeType.ALL, mappedBy = "user")
+   private Car car;
    public User() {}
    
-   public User(String firstName, String lastName, String email) {
+   public User(String firstName, String lastName, String email , Car car) {
       this.firstName = firstName;
       this.lastName = lastName;
       this.email = email;
+      this.car = car;
+      this.id = null;
    }
 
    public Long getId() {
@@ -57,5 +64,24 @@ public class User {
 
    public void setEmail(String email) {
       this.email = email;
+   }
+
+   @Override
+   public String toString() {
+      return "User{" +
+              "id=" + id +
+              ", firstName='" + firstName + '\'' +
+              ", lastName='" + lastName + '\'' +
+              ", email='" + email + '\'' +
+              '}';
+   }
+
+   @SuppressWarnings("unchecked")
+   public User getUserByCar(String model, int series) {
+      TypedQuery<User> userTypedQuery = session.createQuery(
+              "from User user join fetch user.car where user.car.model = :model and " +
+                      "user.car.series = :series", User.class);
+      userTypedQuery.setParameter("model", model).setParameter("series", series);
+      return userTypedQuery.setMaxResults(1).getSingleResult();
    }
 }
